@@ -24,8 +24,6 @@
 Amazon S3 → Buckets → Select bucket → Permissions → Bucket policy
 
 ```json
-json
-CopyEdit
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -106,8 +104,6 @@ Lambda → Functions → Select function → Configuration → Permissions
 Attach a custom policy, e.g., `S3AccessDenied-SNS-Policy`:
 
 ```json
-json
-CopyEdit
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -136,8 +132,6 @@ Amazon EventBridge → Rules → Create rule
 **Event Pattern:**
 
 ```json
-json
-CopyEdit
 {
   "source": ["aws.s3"],
   "detail-type": ["AWS API Call via CloudTrail"],
@@ -183,3 +177,106 @@ Function overview → Add trigger
 - **Prevents data leaks and tampering** by proactively blocking unauthorized IP access to S3
 - **Enables real-time detection and notification** of `AccessDenied` attempts
 - **Improves auditability and traceability** through CloudTrail logs and SNS-based alerts
+
+## Troubleshooting
+
+### EventBridge Sandbox Testing
+
+```json
+{
+  "version": "0",
+  "id": "...",
+  "detail-type": "...",
+  "source": "...",
+  "account": "...",
+  "time": "...",
+  "region": "...",
+  "resources": [],
+  "detail": {
+    ...
+  }
+}
+```
+
+- CloudTrail event payloads must be **wrapped under the `detail` key** for EventBridge to recognize them as valid events.
+- Raw CloudTrail events without `detail` wrapping are **not accepted by EventBridge**.
+
+---
+
+### CloudTrail Monitoring
+
+**Path:** CloudTrail → Trails
+
+- S3 bucket and object-level operations are logged as **Data events**.
+- Use **Amazon Athena** to query and verify whether test events are being captured in the correct trail.
+
+<img width="503" alt="image3" src="https://github.com/user-attachments/assets/61d54da9-f482-4b7a-b292-1c207d16639c" />
+
+- For better visibility, configure CloudTrail to record **Data events on a per-bucket basis**.
+
+<img width="1228" alt="image4" src="https://github.com/user-attachments/assets/231c2529-d919-4e41-877e-5e2824069608" />
+
+
+---
+
+### EventBridge Monitoring
+
+**Path:** Amazon EventBridge → Rules → Select the rule created in Step 4 → Monitoring
+
+- Trigger an event that matches your rule's **event pattern**.
+- Check if `Matched events` and `Invocations` counters are increasing.
+
+<img width="1234" alt="image5" src="https://github.com/user-attachments/assets/89d6aef3-80bc-4ed4-a429-7f24c3a3bddf" />
+
+- If the event shows up in CloudTrail or Athena but **not in EventBridge**, the issue is likely due to an incorrect **event pattern filter**.
+
+---
+
+### Lambda Function Monitoring
+
+**Path:** Lambda → Functions → Select the function → Monitoring
+
+- Confirm whether the function is invoked as many times as EventBridge events are triggered.
+
+<img width="1190" alt="image6" src="https://github.com/user-attachments/assets/e1f917cb-d226-43fc-9646-ebb5431ab153" />
+
+- Use **CloudWatch Logs** to inspect the exact contents of incoming events.
+
+<img width="1706" alt="image7" src="https://github.com/user-attachments/assets/880fda16-784e-4ddd-a173-6693c020da1d" />
+
+
+---
+
+### Extracting Full Event Logs for Debugging
+
+**Path:** Amazon EventBridge → Rules → Select the rule created earlier
+
+Start with a **broad event pattern** to capture all logs related to the target bucket:
+
+```json
+{
+  "source": ["aws.s3"],
+  "detail-type": ["AWS API Call via CloudTrail"],
+  "detail": {
+    "requestParameters": {
+      "bucketName": ["threatlab-sensitive-data"]
+    }
+  }
+}
+```
+
+Once logs are captured, refine the pattern for more precise filtering:
+
+```json
+{
+  "source": ["aws.s3"],
+  "detail-type": ["AWS API Call via CloudTrail"],
+  "detail": {
+    "eventName": ["PutObject", "GetObject", "DeleteObjects", "ListObjects", "ListObjectsV2"],
+    "requestParameters": {
+      "bucketName": ["threatlab-sensitive-data"]
+    },
+    "managementEvent": [false]
+  }
+}
+```
