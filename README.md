@@ -46,7 +46,6 @@ Amazon S3 → Buckets → Select bucket → Permissions → Bucket policy
     }
   ]
 }
-
 ```
 
 **Explanation:**
@@ -57,7 +56,6 @@ Amazon S3 → Buckets → Select bucket → Permissions → Bucket policy
 - `"Action": "s3:*"`: Applies to all S3 actions (`PutObject`, `GetObject`, `DeleteObject`, etc.).
 - `"Resource"`: Applies to the entire bucket and all its objects.
 
----
 
 ### 2. Create Amazon SNS Topic
 
@@ -75,7 +73,6 @@ Select the topic → Go to **Subscriptions** → Create subscription
 - **Protocol:** `Email`
 - **Endpoint:** `2000junghyun@gmail.com`
 
----
 
 ### 3. Create Lambda Function
 
@@ -93,7 +90,6 @@ AWS Lambda → Functions → Create function
 | --- | --- |
 | `SNS_TOPIC_ARN` | ARN of the SNS topic created in Step 2 |
 
----
 
 ### 4. Add SNS Publish Permissions to Lambda
 
@@ -114,12 +110,10 @@ Attach a custom policy, e.g., `S3AccessDenied-SNS-Policy`:
     }
   ]
 }
-
 ```
 
 - `SNS_TOPIC_ARN`: The ARN of the SNS topic created in Step 2.
 
----
 
 ### 5. Add EventBridge Trigger
 
@@ -146,7 +140,6 @@ Amazon EventBridge → Rules → Create rule
     ]
   }
 }
-
 ```
 
 - **Target:** Lambda function → `S3AccessDenied_AlertHandler`
@@ -170,7 +163,6 @@ Function overview → Add trigger
 
 ![image2](https://github.com/user-attachments/assets/23884f9c-f50f-400e-a71c-c73f53452fd1)
 
----
 
 ## Expected Benefits
 
@@ -201,7 +193,6 @@ Function overview → Add trigger
 - CloudTrail event payloads must be **wrapped under the `detail` key** for EventBridge to recognize them as valid events.
 - Raw CloudTrail events without `detail` wrapping are **not accepted by EventBridge**.
 
----
 
 ### CloudTrail Monitoring
 
@@ -217,8 +208,6 @@ Function overview → Add trigger
 <img width="1228" alt="image4" src="https://github.com/user-attachments/assets/231c2529-d919-4e41-877e-5e2824069608" />
 
 
----
-
 ### EventBridge Monitoring
 
 **Path:** Amazon EventBridge → Rules → Select the rule created in Step 4 → Monitoring
@@ -230,7 +219,6 @@ Function overview → Add trigger
 
 - If the event shows up in CloudTrail or Athena but **not in EventBridge**, the issue is likely due to an incorrect **event pattern filter**.
 
----
 
 ### Lambda Function Monitoring
 
@@ -244,8 +232,6 @@ Function overview → Add trigger
 
 <img width="1706" alt="image7" src="https://github.com/user-attachments/assets/880fda16-784e-4ddd-a173-6693c020da1d" />
 
-
----
 
 ### Extracting Full Event Logs for Debugging
 
