@@ -18,6 +18,7 @@
 9. The administrator receives **real-time notifications** about the blocked IP and its activity details.
 
 <br>
+
 ### 1. Bucket Policy Configuration
 
 **Path:**
@@ -58,6 +59,7 @@ Amazon S3 → Buckets → Select bucket → Permissions → Bucket policy
 - `"Resource"`: Applies to the entire bucket and all its objects.
 
 <br>
+
 ### 2. Create Amazon SNS Topic
 
 **Path:**
