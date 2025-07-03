@@ -16,7 +16,8 @@
 7. The function publishes a notification message to an **SNS topic** (`SNS_TOPIC_ARN`).
 8. The SNS topic then sends the message to **subscribed email addresses**.
 9. The administrator receives **real-time notifications** about the blocked IP and its activity details.
-  
+
+<br><br>
 ### 1. Bucket Policy Configuration
 
 **Path:**
