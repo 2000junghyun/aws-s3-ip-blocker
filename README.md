@@ -77,6 +77,7 @@ Select the topic → Go to **Subscriptions** → Create subscription
 - **Endpoint:** `2000junghyun@gmail.com`
 
 <br>
+
 ### 3. Create Lambda Function
 
 **Path:**
@@ -94,6 +95,7 @@ AWS Lambda → Functions → Create function
 | `SNS_TOPIC_ARN` | ARN of the SNS topic created in Step 2 |
 
 <br>
+
 ### 4. Add SNS Publish Permissions to Lambda
 
 **Path:**
@@ -118,6 +120,7 @@ Attach a custom policy, e.g., `S3AccessDenied-SNS-Policy`:
 - `SNS_TOPIC_ARN`: The ARN of the SNS topic created in Step 2.
 
 <br>
+
 ### 5. Add EventBridge Trigger
 
 **Path:**
@@ -157,6 +160,7 @@ Function overview → Add trigger
 - **Rule:** Existing rules → `S3AccessDeniedMonitor`
 
 <br>
+
 ## Results
 
 - **Access from unregistered IPs is denied** when attempting to interact with the S3 bucket
@@ -168,6 +172,7 @@ Function overview → Add trigger
 ![image2](https://github.com/user-attachments/assets/23884f9c-f50f-400e-a71c-c73f53452fd1)
 
 <br>
+
 ## Expected Benefits
 
 - **Prevents data leaks and tampering** by proactively blocking unauthorized IP access to S3
@@ -175,6 +180,7 @@ Function overview → Add trigger
 - **Improves auditability and traceability** through CloudTrail logs and SNS-based alerts
 
 <br>
+
 ## Troubleshooting
 
 ### EventBridge Sandbox Testing
@@ -199,6 +205,7 @@ Function overview → Add trigger
 - Raw CloudTrail events without `detail` wrapping are **not accepted by EventBridge**.
 
 <br>
+
 ### CloudTrail Monitoring
 
 **Path:** CloudTrail → Trails
@@ -213,6 +220,7 @@ Function overview → Add trigger
 <img width="1228" alt="image4" src="https://github.com/user-attachments/assets/231c2529-d919-4e41-877e-5e2824069608" />
 
 <br>
+
 ### EventBridge Monitoring
 
 **Path:** Amazon EventBridge → Rules → Select the rule created in Step 4 → Monitoring
@@ -225,6 +233,7 @@ Function overview → Add trigger
 - If the event shows up in CloudTrail or Athena but **not in EventBridge**, the issue is likely due to an incorrect **event pattern filter**.
 
 <br>
+
 ### Lambda Function Monitoring
 
 **Path:** Lambda → Functions → Select the function → Monitoring
@@ -238,6 +247,7 @@ Function overview → Add trigger
 <img width="1706" alt="image7" src="https://github.com/user-attachments/assets/880fda16-784e-4ddd-a173-6693c020da1d" />
 
 <br>
+
 ### Extracting Full Event Logs for Debugging
 
 **Path:** Amazon EventBridge → Rules → Select the rule created earlier
