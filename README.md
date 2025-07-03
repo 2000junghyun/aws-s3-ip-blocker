@@ -1,12 +1,16 @@
 # aws-s3-ip-blocker
-## Problem
 
+<br>
+
+## Problem
 - **Unauthorized external IPs** may access, leak, or delete S3 data.
 - The existing structure is **reactive**, detecting and responding only after the attack.
 - Difficult to identify abnormal behavior, leading to **false positives or missed detections**.
 
-## Solution Overview
+<br>
 
+## Solution
+### Overview
 1. An IP address **not on the whitelist** attempts to invoke an S3 API (e.g., `GetObject`).
 2. The request is **preemptively blocked** by the S3 Bucket Policy → `AccessDenied` is triggered.
 3. The `AccessDenied` event is recorded in **AWS CloudTrail** and sent to **Amazon EventBridge**.
@@ -20,9 +24,7 @@
 <br>
 
 ### 1. Bucket Policy Configuration
-
 **Path:**
-
 Amazon S3 → Buckets → Select bucket → Permissions → Bucket policy
 
 ```json
@@ -51,7 +53,6 @@ Amazon S3 → Buckets → Select bucket → Permissions → Bucket policy
 ```
 
 **Explanation:**
-
 - `"Effect": "Deny"`: Denies all requests matching the condition.
 - `"NotIpAddress"`: Blocks any request not from the specified IP address.
 - `"Principal": "*"`: Applies to all users (IAM users, roles, anonymous).
@@ -61,35 +62,25 @@ Amazon S3 → Buckets → Select bucket → Permissions → Bucket policy
 <br>
 
 ### 2. Create Amazon SNS Topic
-
 **Path:**
-
 Amazon SNS → Topics → Create topic
-
 - **Name:** `S3AccessDenied`
 - **Display name:** `AWS Security Alert (S3AccessDenied)`
-
 **Then:**
-
 Select the topic → Go to **Subscriptions** → Create subscription
-
 - **Protocol:** `Email`
 - **Endpoint:** `2000junghyun@gmail.com`
 
 <br>
 
 ### 3. Create Lambda Function
-
 **Path:**
-
 AWS Lambda → Functions → Create function
-
 - **Function name:** `S3AccessDenied_AlertHandler`
 - **Runtime:** Python 3.9
 - **Architecture:** x86_64
 
 ### Environment Variables
-
 | **Key** | **Value** |
 | --- | --- |
 | `SNS_TOPIC_ARN` | ARN of the SNS topic created in Step 2 |
@@ -97,13 +88,9 @@ AWS Lambda → Functions → Create function
 <br>
 
 ### 4. Add SNS Publish Permissions to Lambda
-
 **Path:**
-
 Lambda → Functions → Select function → Configuration → Permissions
-
 Attach a custom policy, e.g., `S3AccessDenied-SNS-Policy`:
-
 ```json
 {
   "Version": "2012-10-17",
@@ -116,21 +103,15 @@ Attach a custom policy, e.g., `S3AccessDenied-SNS-Policy`:
   ]
 }
 ```
-
 - `SNS_TOPIC_ARN`: The ARN of the SNS topic created in Step 2.
 
 <br>
 
 ### 5. Add EventBridge Trigger
-
 **Path:**
-
 Amazon EventBridge → Rules → Create rule
-
 - **Name:** `S3AccessDeniedMonitor`
-
 **Event Pattern:**
-
 ```json
 {
   "source": ["aws.s3"],
@@ -149,20 +130,15 @@ Amazon EventBridge → Rules → Create rule
 ```
 
 - **Target:** Lambda function → `S3AccessDenied_AlertHandler`
-
 Then, in the Lambda function:
-
 **Path:**
-
 Function overview → Add trigger
-
 - **Trigger type:** EventBridge (CloudWatch Events)
 - **Rule:** Existing rules → `S3AccessDeniedMonitor`
 
 <br>
 
 ## Results
-
 - **Access from unregistered IPs is denied** when attempting to interact with the S3 bucket
 
 <img width="756" alt="image" src="https://github.com/user-attachments/assets/957ff753-2539-4461-a3e0-257067bd3132" />
@@ -174,7 +150,6 @@ Function overview → Add trigger
 <br>
 
 ## Expected Benefits
-
 - **Prevents data leaks and tampering** by proactively blocking unauthorized IP access to S3
 - **Enables real-time detection and notification** of `AccessDenied` attempts
 - **Improves auditability and traceability** through CloudTrail logs and SNS-based alerts
@@ -182,9 +157,7 @@ Function overview → Add trigger
 <br>
 
 ## Troubleshooting
-
 ### EventBridge Sandbox Testing
-
 ```json
 {
   "version": "0",
@@ -200,16 +173,13 @@ Function overview → Add trigger
   }
 }
 ```
-
 - CloudTrail event payloads must be **wrapped under the `detail` key** for EventBridge to recognize them as valid events.
 - Raw CloudTrail events without `detail` wrapping are **not accepted by EventBridge**.
 
 <br>
 
 ### CloudTrail Monitoring
-
 **Path:** CloudTrail → Trails
-
 - S3 bucket and object-level operations are logged as **Data events**.
 - Use **Amazon Athena** to query and verify whether test events are being captured in the correct trail.
 
@@ -222,9 +192,7 @@ Function overview → Add trigger
 <br>
 
 ### EventBridge Monitoring
-
 **Path:** Amazon EventBridge → Rules → Select the rule created in Step 4 → Monitoring
-
 - Trigger an event that matches your rule's **event pattern**.
 - Check if `Matched events` and `Invocations` counters are increasing.
 
@@ -235,9 +203,7 @@ Function overview → Add trigger
 <br>
 
 ### Lambda Function Monitoring
-
 **Path:** Lambda → Functions → Select the function → Monitoring
-
 - Confirm whether the function is invoked as many times as EventBridge events are triggered.
 
 <img width="1190" alt="image6" src="https://github.com/user-attachments/assets/e1f917cb-d226-43fc-9646-ebb5431ab153" />
@@ -249,9 +215,7 @@ Function overview → Add trigger
 <br>
 
 ### Extracting Full Event Logs for Debugging
-
 **Path:** Amazon EventBridge → Rules → Select the rule created earlier
-
 Start with a **broad event pattern** to capture all logs related to the target bucket:
 
 ```json
@@ -265,7 +229,6 @@ Start with a **broad event pattern** to capture all logs related to the target b
   }
 }
 ```
-
 Once logs are captured, refine the pattern for more precise filtering:
 
 ```json
